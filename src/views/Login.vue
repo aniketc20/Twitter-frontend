@@ -2,15 +2,46 @@
 import Bird from '../assets/login/bird.vue';
 import Google from '../assets/login/Google.vue';
 import Apple from '../assets/login/Apple.vue';
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth"
+import axios from "axios"
+import router from '../router';
 
+const provider = new GoogleAuthProvider()
+async function GoogleSignIn() {
+  const auth = getAuth()
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      // This gives you a Google Access Token. You can use it to access the Google API.
+      const credential = GoogleAuthProvider.credentialFromResult(result)
+      // The signed-in user info.
+      const user = result.user
+      const full_name = user.displayName
+      const email = user.email
+      const pic = user.photoURL
+      axios
+        .post(`http://localhost:8000/v1/`, {
+          name: result.user.displayName,
+          email: result.user.email,
+          picUrl: result.user.photoURL,
+        })
+        .then((result) => {
+          localStorage.setItem("name", full_name)
+          localStorage.setItem("email", email)
+          localStorage.setItem("pic", pic)
+          router.push('home')
+          //window.location.push('home')
+          console.log(result)
+        })
+    })
+}
 </script>
 <template>
 
 <div class="flex">
-  <div class="bg-[url('https://abs.twimg.com/sticky/illustrations/lohp_en_1302x955.png')] h-screen w-[53%] flex items-center justify-center">
+  <div class="bg-[url('https://abs.twimg.com/sticky/illustrations/lohp_en_1302x955.png')] h-screen w-[40%] flex items-center justify-center">
     <Bird class="md:w-48"/>
   </div>
-  <div class="w-[47%] m-6">
+  <div class="w-[60%] m-6">
     <div class="flex flex-col h-full justify-evenly items-center justify-center">
       <div>
         <h1 class="font-bold md:text-[60px]">
