@@ -26,8 +26,8 @@ async function GoogleSignIn() {
         })
         .then((result) => {
           localStorage.setItem("name", full_name)
-          localStorage.setItem("email", email)
-          localStorage.setItem("pic", pic)
+          localStorage.setItem("email", result.data.email)
+          localStorage.setItem("pic", result.data.pic)
           router.push('home')
           //window.location.push('home')
           console.log(result)

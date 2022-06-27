@@ -1,10 +1,50 @@
-<script setup>
+<script setup lang="ts">
 import Home from '../assets/home/home.vue';
 import LeftPanelVue from '../components/LeftPanel.vue';
 import RightPanelVue from '../components/RightPanel.vue';
+import axios from "axios"
+import { ref } from "vue"
+import { createToast } from "mosha-vue-toastify"
+import "mosha-vue-toastify/dist/style.css"
+import 'emoji-picker-element';
 
 const user_img = localStorage.getItem("pic")
-console.log(user_img)
+const user_email = localStorage.getItem("email")
+const tweet = ref("")
+
+var emoticon = ref(true)
+
+
+const postTweet = () => {
+    //axios.defaults.headers.common["Authorization"] = "Bearer " + token
+    console.log(tweet.value)
+    axios
+      .post(`http://localhost:8000/v1/tweet`,{
+        tweet: tweet.value,
+        user: user_email
+    })
+      .then((result) => {
+        console.log(result)
+        tweet.value = ''
+        tweetPosted();
+      })
+}
+
+const tweetPosted = () => {
+  createToast(
+    { description: "Tweet Posted" },
+    {
+      position: "top-center",
+      type: "info",
+      toastBackgroundColor: "#2e4fa3",
+      hideProgressBar: true,
+    }
+  )
+}
+
+const handleEmojiClick = (detail) => {
+    tweet.value += detail.detail.emoji.unicode;
+}
 </script>
 
 <template>
@@ -12,7 +52,7 @@ console.log(user_img)
 <div class="flex h-full">
     <LeftPanelVue/>
     <div class="w-[55%] bg-gray-900">
-        <div class="flex flex-col h-screen text-white">
+        <div class="flex flex-col h-screen text-white overflow-auto">
             <div class="p-3">
                 <h1 class="font-bold md:text-lg">
                     Home
@@ -20,8 +60,8 @@ console.log(user_img)
             </div>
             <div class="p-3">
                 <div class="flex">
-                    <img class="w-14 h-14 rounded-full" :src=user_img alt="Rounded avatar">
-                    <textarea type="text" placeholder="What's happening?" class="p-3 w-full text-xl outline-0 bg-gray-900"></textarea>
+                    <img class="w-14 h-14 rounded-full object-cover" :src=user_img alt="Rounded avatar">
+                    <textarea v-model="tweet" id="tweet" type="text" placeholder="What's happening?" class="p-3 w-full text-xl outline-0 bg-gray-900"></textarea>
                 </div>
             </div>
             <hr class="ml-16 mr-6">
@@ -29,9 +69,10 @@ console.log(user_img)
                 <div class="flex flex-row-reverse mt-2 justify-between items-center content-end">
                     <div>
                         <button
-                        id="gmail"
-                        @click="Tweet"
-                        class="w-20 p-1 ripple ripple-bg-gray-300 shadow bg-blue-400 hover:bg-blue-600 text-white rounded-full">
+                        id="postTweet"
+                        :disabled="tweet.length < 1"
+                        @click="postTweet"
+                        class="w-20 p-1 ripple ripple-bg-gray-300 shadow bg-blue-500 hover:bg-blue-600 text-white rounded-full">
                         <span class="">Tweet</span>
                     </button>
                     </div>
@@ -46,7 +87,11 @@ console.log(user_img)
                             <i class="fa fa-bar-chart" aria-hidden="true"></i>
                         </div>
                         <div>
-                            <i class="fa fa-smile-o" aria-hidden="true"></i>
+                            <emoji-picker @emojiClick="handleEmojiClick" :hidden=emoticon class="absolute z-10 mt-10">
+
+                            </emoji-picker>
+                            <!-- <VuemojiPicker @emojiClick="handleEmojiClick" :hidden=emoticon class="absolute z-10 mt-10" /> -->
+                            <i class="fa fa-smile-o cursor-pointer" aria-hidden="true" @click="emoticon=(!emoticon)"></i>
                         </div>
                         <div>
                             <i class="fa fa-calendar" aria-hidden="true"></i>
@@ -57,7 +102,7 @@ console.log(user_img)
                     </div>
                 </div>
             </div>
-            <div class="border-t overflow-auto">
+            <div class="border-t">
                 <!-- Feed -->
                 <div class="flex p-3 border-b">
                     <img class="w-14 h-14 rounded-full" src="https://pbs.twimg.com/profile_images/1428049246956097536/JEm1SO_s_400x400.jpg" alt="Rounded avatar">
@@ -113,4 +158,13 @@ console.log(user_img)
     </div>
     <RightPanelVue/>
 </div>
+
 </template>
+<style scoped>
+button:disabled {
+  border: 1px solid #999999;
+  background-color: transparent;
+  color: white;
+  box-shadow: none;
+}
+</style>

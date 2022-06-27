@@ -6,11 +6,15 @@ import vue3videoPlay from "vue3-video-play";
 import "vue3-video-play/dist/style.css";
 import { getAnalytics } from "firebase/analytics";
 import firebase from "firebase/compat/app";
+import 'vue-universal-modal/dist/index.css'
+import VueUniversalModal from 'vue-universal-modal'
 
 const app = createApp(App)
 app.use(vue3videoPlay);
 app.use(router).mount('#app')
-// TODO: Add SDKs for Firebase products that you want to use
+app.use(VueUniversalModal, {
+  teleportTarget: '#modals'
+})// TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
