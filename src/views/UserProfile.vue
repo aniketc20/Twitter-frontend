@@ -8,17 +8,19 @@ import axios from "axios"
 const user_img = localStorage.getItem("pic")
 const user_name = localStorage.getItem("name")
 const user_email = localStorage.getItem("email")
+const followers = ref(0)
+const following = ref(0)
 
 var profile_pic = ref(user_img)
 var openModal = ref(false)
 var tweets = ref([])
 
 axios
-    .get(`http://localhost:8000/v1/getUserTweets`)
+    .get(`http://localhost:8000/v1/getUserTweets/`+user_email)
     .then((result) => {
-        for (let i = 0; i < result.data.length; i++) {
-            tweets.value.push(result.data[i]);
-        } 
+        tweets.value = result.data.tweets;
+        followers.value = result.data.followers[0]
+        following.value = result.data.following[0]
     console.log(tweets.value)
 })
 const capturePic = () => {
@@ -82,7 +84,7 @@ const updateProfile = () => {
                     <a href="#" class="decoration-white hover:underline ml-4 ">
                         <div class="flex">
                             <div class="text-white text-sm pr-1">
-                                <h1 class="font-bold inline">57 
+                                <h1 class="font-bold inline">{{ following }}
                                 <h1 class="inline text-slate-400">Following</h1></h1>
                             </div>
                         </div>
@@ -90,7 +92,7 @@ const updateProfile = () => {
                     <a href="#" class="decoration-white hover:underline">
                         <div class="flex">
                             <div class="ml-4 text-white text-sm pr-1">
-                                <h1 class="font-bold inline">8 
+                                <h1 class="font-bold inline">{{ followers }} 
                                 <h1 class="inline text-slate-400">Followers</h1></h1>
                             </div>
                         </div>
@@ -98,20 +100,29 @@ const updateProfile = () => {
                 </div>
             </div>
 
-            <div class="mt-6 border-t">
+            <div class="mt-6 border-t-[0.1px] border-blue-200">
             <!-- Feed -->
-            <div v-for="tweet in tweets.length" class="flex p-3 border-b">
+            <div v-for="tweet in tweets.length" class="flex p-3 border-b-[0.1px] border-blue-200">
                 <img class="w-14 h-14 rounded-full object-cover" :src=tweets[tweet-1].userPic  alt="Rounded avatar">
                 <div class="flex flex-col pl-3 w-full">
-                    <div>
+                    <div class="flex">
                         <h1 class="font-bold">
-                            {{ tweets[tweet-1].userName }}
+                            {{user_name}}
+                        </h1>
+                        <h1 class="text-slate-400 ml-1">
+                            • {{ (new Date(tweets[tweet-1].createdAt)).toString().substring(4, 10) }},
+                            {{ (new Date(tweets[tweet-1].createdAt)).toString().substring(11, 15) }} 
                         </h1>
                     </div>
 
                     <!-- Tweet -->
                     <div>
                         {{ tweets[tweet-1].tweet }}
+                    </div>
+
+                    <div class="flex">
+                        <img :src="tweets[tweet-1].mediaFile" class="rounded-2xl mt-4" alt="">
+                        <!-- {{ tweets[tweet-1].mediaFile }} -->
                     </div>
                     <!-- <div class="mt-4">
                         <iframe class="rounded-md md:w-full md:h-[315px]" 

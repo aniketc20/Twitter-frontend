@@ -16,10 +16,10 @@ console.log(useRoute().path)
                 <img class="px-3" src="https://img.icons8.com/color/undefined/twitter--v1.png"/>
             </div>
             <div class="md:text-xl">
-                <button @click="router.push('home')" class="hover:bg-blue-500 rounded-full">
+                <button @click="router.replace('/home/')" class="hover:bg-blue-500 rounded-full">
                     <div class="flex">
                         <!-- <Home class=" m-1"/> -->
-                        <h1 class="font-bold bg-gray-600 rounded-full p-3" v-if="useRoute().path=='/home' ">
+                        <h1 class="font-bold bg-gray-600 rounded-full p-3" v-if="useRoute().path=='/home/' ">
                         <HomeIconDark class="inline m-1"/>
                         <!-- <i class="fa fa-home m-1" style='color:orange' aria-hidden="true"></i> -->
                             Home
@@ -49,9 +49,9 @@ console.log(useRoute().path)
             </div>
 
             <div class="md:text-xl">
-                <button @click="router.push('user-profile')"  class="hover:bg-blue-500 rounded-full">
+                <button @click="router.replace('/user-profile/')"  class="hover:bg-blue-500 rounded-full">
                     <div class="flex">
-                        <h1 class="font-bold bg-gray-600 rounded-full p-3" v-if="useRoute().path=='/user-profile' ">
+                        <h1 class="font-bold bg-gray-600 rounded-full p-3" v-if="useRoute().path=='/user-profile/' ">
                         <i class="fa fa-user m-1" style='color:orange' aria-hidden="true"></i>
                             Profile
                         </h1>

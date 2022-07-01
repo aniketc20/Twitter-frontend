@@ -8,9 +8,11 @@ import { getAnalytics } from "firebase/analytics";
 import firebase from "firebase/compat/app";
 import 'vue-universal-modal/dist/index.css'
 import VueUniversalModal from 'vue-universal-modal'
+import pinia from "./stores/store.js";
 
 const app = createApp(App)
 app.use(vue3videoPlay);
+app.use(pinia);
 app.use(router).mount('#app')
 app.use(VueUniversalModal, {
   teleportTarget: '#modals'

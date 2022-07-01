@@ -17,7 +17,7 @@
     "emoji-picker-element": "^1.12.1",
     "firebase": "^9.8.3",
     "mosha-vue-toastify": "^1.0.23",
-    "pinia": "^2.0.13",
+    "pinia": "^2.0.14",
     "vue": "^3.2.25",
     "vue-carousel-3d": "^1.0.1",
     "vue-router": "^4.0.16",
