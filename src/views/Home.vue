@@ -13,10 +13,8 @@ const user_img = localStorage.getItem("pic")
 const user_email = localStorage.getItem("email")
 const tweet = ref("")
 const picker = new Picker();
+const token = localStorage.getItem("token")
 
-const style = document.createElement('style');
-style.text = `hello`
-picker.shadowRoot.appendChild(style);
 
 var emoticon = ref(true)
 var openGif = ref(false)
@@ -24,6 +22,7 @@ var gifs = ref([])
 var gifKeyword = ref("")
 var gif_img = ref(null)
 var hide_cross = ref(true)
+var tweets = ref([])
 
 // url Async requesting function
 function httpGetAsync(theUrl, callback)
@@ -99,7 +98,7 @@ function grab_data()
 // MAIN BELOW
 
 const postTweet = () => {
-    //axios.defaults.headers.common["Authorization"] = "Bearer " + token
+    axios.defaults.headers.common["Authorization"] = "Bearer " + token
     console.log(tweet.value)
     axios
       .post(`http://localhost:8000/v1/tweet`,{
@@ -113,6 +112,7 @@ const postTweet = () => {
         console.log(result)
         tweet.value = ''
         tweetPosted();
+        window.location.href = '/home/';
       })
 }
 
@@ -149,9 +149,7 @@ const insertPic = () => {
     const reader = new FileReader();
     reader.addEventListener("load", function () {
         // convert image file to base64 string
-        // preview.src = reader.result;
         gif_img.value = reader.result;
-        //user_img.value = reader.result
         console.log(reader.result)
         hide_cross.value = false
     }, false);
@@ -159,6 +157,14 @@ const insertPic = () => {
         reader.readAsDataURL(file);
     }
 }
+axios.defaults.headers.common["Authorization"] = "Bearer " + token
+axios
+    .get(`http://localhost:8000/v1/`+user_email+`/feed/`)
+    .then((result) => {
+        tweets.value = result.data;
+        console.log(tweets.value)
+})
+
 </script>
 
 <template>
@@ -166,7 +172,7 @@ const insertPic = () => {
 <div class="flex h-full">
     <LeftPanelVue/>
     <div class="w-[55%] bg-gray-900 ">
-        <div @scroll="emoticon=true" class="flex-col h-screen text-white overflow-auto">
+        <div class="flex-col h-screen text-white overflow-auto">
             <div class="p-3">
                 <h1 class="font-bold md:text-lg">
                     Home
@@ -230,63 +236,43 @@ const insertPic = () => {
                     </div>
                 </div>
             </div>
-            <div class="border-t">
+            <div class="border-t h-screen">
                 <!-- <Modal :hidden="emoticon" @click="emoticon=true"> -->
                 <div class="flex h-0 rounded-xl">
-                    <emoji-picker @emojiClick="handleEmojiClick" :hidden=emoticon class="m-auto dark">
+                    <emoji-picker @emojiClick="handleEmojiClick" :hidden=emoticon class="m-auto dark shadow-gray-700 shadow-lg">
                     </emoji-picker>
                 </div>
                 <!-- </Modal> -->
                 <!-- Feed -->
-                <div class="flex p-3">
-                    <img class="w-14 h-14 rounded-full" src="https://pbs.twimg.com/profile_images/1428049246956097536/JEm1SO_s_400x400.jpg" alt="Rounded avatar">
-                    <div class="flex flex-col pl-3 w-full">
-                        <div>
-                            <h1 class="font-bold">
-                                YouTube India
-                                @YouTubeIndia
-                            </h1>
-                        </div>
-
-                        <!-- Tweet -->
-                        <div>
-                            Coke Studio Season 10| Ranjish Hi Sahi| Ali Sethi
-                        </div>
-                        <div class="mt-4">
-                            <iframe class="rounded-md md:w-full md:h-[315px]" 
-                            src="https://www.youtube.com/embed/pba_YmWDAIU" 
-                            title="YouTube video player" frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen></iframe>
-                       </div>
-                       <!-- Tweet ends -->
+           <div v-for="tweet in tweets.length" class="flex p-3 border-b-[0.1px] border-blue-200">
+                <img class="w-14 h-14 rounded-full object-cover" :src=tweets[tweet-1].userPic  alt="Rounded avatar">
+                <div class="flex flex-col pl-3 w-full">
+                    <div class="flex">
+                        <h1 class="font-bold">
+                            {{ tweets[tweet-1].tweetedBy }}
+                        </h1>
+                        <h1 class="text-slate-400 ml-2">
+                            {{ tweets[tweet-1].user }}
+                        </h1>
+                        <h1 class="text-slate-400 ml-1">
+                            • {{ (new Date(tweets[tweet-1].createdAt)).toString().substring(4, 10) }},
+                            {{ (new Date(tweets[tweet-1].createdAt)).toString().substring(11, 15) }} 
+                        </h1>
                     </div>
-                </div>
 
-                <div class="flex p-3">
-                    <img class="w-14 h-14 rounded-full" src="https://pbs.twimg.com/profile_images/1428049246956097536/JEm1SO_s_400x400.jpg" alt="Rounded avatar">
-                    <div class="flex flex-col pl-3 w-full">
-                        <div>
-                            <h1 class="font-bold">
-                                YouTube India
-                                @YouTubeIndia
-                            </h1>
-                        </div>
-
-                        <!-- Tweet -->
-                        <div>
-                            Coke Studio Season 10| Ranjish Hi Sahi| Ali Sethi
-                        </div>
-                        <div class="mt-4">
-                            <iframe class="rounded-md md:w-full md:h-[315px]" 
-                            src="https://www.youtube.com/embed/pba_YmWDAIU" 
-                            title="YouTube video player" frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen></iframe>
-                       </div>
-                       <!-- Tweet ends -->
+                    <!-- Tweet -->
+                    <div>
+                        {{ tweets[tweet-1].tweet }}
                     </div>
+
+                    <div class="flex">
+                        <img :src="tweets[tweet-1].mediaFile" class="rounded-2xl mt-4" alt="">
+                        <!-- {{ tweets[tweet-1].mediaFile }} -->
+                    </div>
+                    <!-- Tweet ends -->
                 </div>
+            </div>
+
             </div>
         </div>
     </div>

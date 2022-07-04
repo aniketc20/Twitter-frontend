@@ -8,9 +8,12 @@ import { useAuthStore } from '../stores/auth';
 const user_img = localStorage.getItem("pic")
 const user_email = localStorage.getItem("email")
 const authStore = useAuthStore()
+const token = localStorage.getItem("token")
+const loggenInUser = localStorage.getItem("email")
 
 var users = ref([])
 
+axios.defaults.headers.common["Authorization"] = "Bearer " + token
 axios
     .get(`http://localhost:8000/v1/followusers/`+user_email)
     .then((result) => {
@@ -21,14 +24,35 @@ axios
 })
 
 const viewProfile = (selectedUser) => {
-    //router.push({ path: '/clicked-user-profile', query: { user: selectedUser.path[1].id } })
-    //router.push({ name: 'clicked-user-profile', params: { user: selectedUser.path[1].id } })
-    window.location.href = '/clicked-user-profile/'
-    console.log(selectedUser.path[2].innerText.split('\n')[0])
-    localStorage.setItem("clicked-user", selectedUser.path[1].id)
-    // localStorage.setItem("clicked-user-name", selectedUser.path[2].innerText.split('\n')[0])
-    // localStorage.setItem("clicked-user-img", selectedUser.path[0].src)
-    // authStore.setClickedUser(selectedUser.path[1].id, selectedUser.path[0].src)
+    window.location.href = '/'+selectedUser.path[1].id+'/'
+    localStorage.setItem("clicked-user-email", selectedUser.path[1].id)
+    console.log(selectedUser.path[1].id)
+}
+const followUser = (user) => {
+    var followORunFollow = document.getElementById(user.path[1].id+`message`);
+    console.log(followORunFollow.textContent)
+    if(followORunFollow.textContent=="Follow") {
+        followORunFollow.textContent = "Unfollow"
+        axios
+            .post(` http://localhost:8000/v1/follow`, {
+                "follower": loggenInUser,
+                "following": user.path[1]['id']
+            })
+            .then((result) => {
+                console.log(result)
+            })
+    }
+    else {
+        followORunFollow.textContent = "Follow"
+        axios
+            .post(` http://localhost:8000/v1/unfollow`, {
+                "follower": loggenInUser,
+                "following": user.path[1]['id']
+            })
+            .then((result) => {
+                console.log(result)
+            })
+    }
 }
 </script>
 
@@ -41,25 +65,29 @@ const viewProfile = (selectedUser) => {
                 </span>
                 <input type="search" name="q" class="p-2 text-sm w-full text-white bg-gray-600 rounded-full pl-10 focus:outline-none focus:bg-white focus:text-gray-900" placeholder="Search Twitter" autocomplete="off">
             </div>
-            <div class="flex flex-col bg-slate-700 rounded-xl mt-4 text-white">
+            <div class="flex flex-col bg-slate-700 rounded-xl mt-4 w-[90%] text-white">
                 <h1 class="font-extrabold p-2 text-[20px]">
                     Users to follow
                 </h1>
-                <div v-for="user in users.length" class="flex w-full justify-center">
-                <button class="rounded-full" @click="viewProfile" :id="users[user-1].email">
-                    <img :src="users[user-1].pic" class="w-14 h-14 rounded-full object-cover ml-2">
-                </button>
-                <div class="mt-4 p-2">
-                    {{users[user-1].name}}
-                </div>
-                <div>
-                    <button
-                    id="postTweet"
-                    @click="postTweet"
-                    class="m-4 p-2 md:w-20 ripple ripple-bg-gray-300 shadow bg-blue-500 hover:bg-blue-600 text-white rounded-full">
-                    <span class="">Follow</span>
-                    </button>
-                </div>
+                <div v-for="user in users.length" class="flex w-full mt-4">
+                    <div>
+                        <button class="rounded-full" @click="viewProfile" :id="users[user-1].email">
+                            <img :src="users[user-1].pic" class="w-14 h-14 rounded-full object-cover ml-2">
+                        </button>
+                    </div>
+                    <div class="flex justify-between w-full">
+                        <div class="ml-4">
+                            {{users[user-1].name}}
+                        </div>
+                        <div :id="users[user-1].email">
+                            <button
+                            :id="users[user-1].email"
+                            @click="followUser"
+                            class="mr-3 p-1 md:w-20 ripple ripple-bg-gray-300 shadow bg-blue-500 hover:bg-blue-600 text-white rounded-full">
+                            <span class="" :id="users[user-1].email+`message`">Follow</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

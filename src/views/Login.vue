@@ -28,6 +28,7 @@ async function GoogleSignIn() {
           localStorage.setItem("name", full_name)
           localStorage.setItem("email", result.data.email)
           localStorage.setItem("pic", result.data.pic)
+          localStorage.setItem("token", result.headers['x-redeminds-user-token'])
           router.push('home')
           //window.location.push('home')
           console.log(result)

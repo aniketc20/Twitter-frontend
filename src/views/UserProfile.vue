@@ -1,39 +1,41 @@
 <script setup>
-import Home from '../assets/home/home.vue';
 import LeftPanelVue from '../components/LeftPanel.vue';
 import RightPanelVue from '../components/RightPanel.vue';
 import { ref } from "vue"
 import axios from "axios"
 
-const user_img = localStorage.getItem("pic")
-const user_name = localStorage.getItem("name")
-const user_email = localStorage.getItem("email")
+const user_img = ref("https://media.istockphoto.com/photos/natural-black-suede-texture-for-design-or-background-picture-id1390028500?k=20&m=1390028500&s=612x612&w=0&h=YJsfd-uRWmlUP2a_Dzq5w9g6sReulvQ_GFIVuNkFgpA=")
+const user_name = ref("")
+const user_email = ref("")
 const followers = ref(0)
 const following = ref(0)
+const token = localStorage.getItem("token")
+const loggedInUserEmail = ref(localStorage.getItem("email"))
 
+var myinput = ref("")
 var profile_pic = ref(user_img)
+var name = ref(user_name)
 var openModal = ref(false)
 var tweets = ref([])
 
+axios.defaults.headers.common["Authorization"] = "Bearer " + token
 axios
-    .get(`http://localhost:8000/v1/getUserTweets/`+user_email)
+    .get(`http://localhost:8000/v1/getUserTweets/`+localStorage.getItem("clicked-user-email"))
     .then((result) => {
         tweets.value = result.data.tweets;
+        user_img.value = result.data.user_details[1]
+        user_name.value = result.data.user_details[0]
+        user_email.value = result.data.user_details[2]
         followers.value = result.data.followers[0]
         following.value = result.data.following[0]
-    console.log(tweets.value)
+        console.log(tweets.value)
 })
 const capturePic = () => {
-    // profile_pic.value = reader.readAsDataURL(event.target.files[0])
-    const preview = document.getElementById('user-new-pic');
     const file = document.querySelector('input[type=file]').files[0];
     const reader = new FileReader();
     reader.addEventListener("load", function () {
         // convert image file to base64 string
-        // preview.src = reader.result;
         profile_pic.value = reader.result;
-        //user_img.value = reader.result
-        console.log(reader.result)
     }, false);
     if (file) {
         reader.readAsDataURL(file);
@@ -41,13 +43,16 @@ const capturePic = () => {
 }
 
 const updateProfile = () => {
-    //axios.defaults.headers.common["Authorization"] = "Bearer " + token
+    console.log(myinput.value.value)
+    axios.defaults.headers.common["Authorization"] = "Bearer " + token
     axios
       .post(`http://localhost:8000/v1/updateProfile`,{
         picUrl: profile_pic.value,
-        email: user_email
+        email: user_email.value,
+        name: myinput.value.value
     })
       .then((result) => {
+        localStorage.setItem("pic", profile_pic.value)
         console.log(result)
     })
 }
@@ -62,7 +67,7 @@ const updateProfile = () => {
             <div class="w-full bg-gray-700 h-56">
                 <div class="flex pt-36 justify-between">
                     <img class="w-32 h-32 rounded-full m-4 p-1 bg-black object-cover" :src=user_img alt="Rounded avatar">
-                    <button @click="openModal=true" class="font-bold mt-24 my-12 mx-4">
+                    <button @click="openModal=true" class="font-bold mt-24 my-12 mx-4" v-if="user_email==loggedInUserEmail" >
                     <div class="text-white rounded-full hover:bg-gray-600 px-4 py-1 border border-white-200">
                         Edit profile
                     </div>
@@ -75,24 +80,24 @@ const updateProfile = () => {
                     {{user_name}}
                 </h1>
                 <h1 class="text-slate-400">
-                    @aniketsab123
+                    {{user_email}}
                 </h1>
             </div>
 
             <div>
                 <div class="flex">
-                    <a href="#" class="decoration-white hover:underline ml-4 ">
+                    <a :href="'/'+user_email+'/following/'" class="decoration-white hover:underline ml-4 ">
                         <div class="flex">
                             <div class="text-white text-sm pr-1">
-                                <h1 class="font-bold inline">{{ following }}
+                                <h1 class="font-bold inline">{{ following.length }}
                                 <h1 class="inline text-slate-400">Following</h1></h1>
                             </div>
                         </div>
                     </a>
-                    <a href="#" class="decoration-white hover:underline">
+                    <a :href="'/'+user_email+'/followers/'" class="decoration-white hover:underline">
                         <div class="flex">
                             <div class="ml-4 text-white text-sm pr-1">
-                                <h1 class="font-bold inline">{{ followers }} 
+                                <h1 class="font-bold inline">{{ followers.length }} 
                                 <h1 class="inline text-slate-400">Followers</h1></h1>
                             </div>
                         </div>
@@ -124,14 +129,6 @@ const updateProfile = () => {
                         <img :src="tweets[tweet-1].mediaFile" class="rounded-2xl mt-4" alt="">
                         <!-- {{ tweets[tweet-1].mediaFile }} -->
                     </div>
-                    <!-- <div class="mt-4">
-                        <iframe class="rounded-md md:w-full md:h-[315px]" 
-                            src="https://www.youtube.com/embed/pba_YmWDAIU" 
-                            title="YouTube video player" frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen>
-                        </iframe>
-                    </div> -->
                     <!-- Tweet ends -->
                 </div>
             </div>
@@ -176,7 +173,7 @@ const updateProfile = () => {
                         Name
                     </div>
                     <div>
-                        <input type="text" :value="user_name" class="border border-gray-400 rounded-md p-2">
+                        <input ref="myinput" type="text" :value="user_name" class="border border-gray-400 rounded-md p-2">
                     </div>
             </div>
             <div class="m-4 grid">

@@ -14,14 +14,19 @@ const router = createRouter({
       component: () => import('/src/views/Home.vue')
     },
     {
-      path: '/user-profile/',
+      path: '/:id/',
       name: 'user-profile',
       component: () => import('/src/views/UserProfile.vue')
     },
     {
-      path: '/clicked-user-profile/',
-      name: 'clicked-user-profile',
-      component: () => import('/src/views/SearchedUserProfile.vue')
+      path: '/:id/followers/',
+      name: 'followers',
+      component: () => import('/src/views/UserFollowers.vue')
+    },
+    {
+      path: '/:id/following/',
+      name: 'following',
+      component: () => import('/src/views/UserFollowing.vue')
     }
   ]
 })
