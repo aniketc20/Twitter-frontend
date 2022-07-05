@@ -7,12 +7,10 @@ import { ref } from "vue"
 import { createToast } from "mosha-vue-toastify"
 import "mosha-vue-toastify/dist/style.css"
 import 'emoji-picker-element';
-import { Picker } from 'emoji-picker-element';
 
 const user_img = localStorage.getItem("pic")
 const user_email = localStorage.getItem("email")
 const tweet = ref("")
-const picker = new Picker();
 const token = localStorage.getItem("token")
 
 
@@ -84,7 +82,7 @@ function grab_data()
     // using default locale of en_US
     else {
         var url = "https://tenor.googleapis.com/v2/search?q=" + search_term + "&key=" +
-        apikey +"&client_key=" + clientkey + "&limit=" + lmt;;
+        apikey +"&client_key=" + clientkey;
     }
     gifs.value = [];
     httpGetAsync(url,tenorCallback_search);
@@ -104,7 +102,7 @@ const postTweet = () => {
       .post(`http://localhost:8000/v1/tweet`,{
         tweet: tweet.value,
         mediaFile: gif_img.value,
-        user: user_email
+        tweeterEmail: user_email
     })
       .then((result) => {
         gif_img.value = null
@@ -157,6 +155,7 @@ const insertPic = () => {
         reader.readAsDataURL(file);
     }
 }
+setInterval(function(){ 
 axios.defaults.headers.common["Authorization"] = "Bearer " + token
 axios
     .get(`http://localhost:8000/v1/`+user_email+`/feed/`)
@@ -164,6 +163,20 @@ axios
         tweets.value = result.data;
         console.log(tweets.value)
 })
+}, 10000);
+
+axios.defaults.headers.common["Authorization"] = "Bearer " + token
+axios
+    .get(`http://localhost:8000/v1/`+user_email+`/feed/`)
+    .then((result) => {
+        tweets.value = result.data;
+        console.log(tweets.value)
+})
+
+const viewTweet = (tweetId) => {
+    window.location.href = '/tweet/' + tweetId + '/';
+    localStorage.setItem("tweetId", tweetId)
+}
 
 </script>
 
@@ -204,30 +217,29 @@ axios
                         id="postTweet"
                         :disabled="tweet.length < 1 && gif_img==null"
                         @click="postTweet"
-                        class="w-20 p-1 ripple ripple-bg-gray-300 shadow bg-blue-500 hover:bg-blue-600 text-white rounded-full">
+                        class="w-20 p-1 ripple ripple-bg-gray-300 shadow bg-blue-500 hover:bg-blue-700 text-white rounded-full">
                         <span class="">Tweet</span>
                     </button>
                     </div>
-                    <div class="flex ml-12 justify-evenly w-48">
-                        <div>
+                    <div class="flex ml-12 justify-evenly w-48 items-center">
+                        <div @click="insertPic" class="flex cursor-pointer items-center justify-center hover:bg-slate-600 transition ease-in-out delay-50 rounded-full w-7 h-7">
                             <input @change="insertPic" type="file" id="file-upload" hidden="true" />
-                            <label for="file-upload">
-                                <i class="fa fa-picture-o cursor-pointer" aria-hidden="true"></i>
+                            <label for="file-upload" class="cursor-pointer">
+                                <i class="fa fa-picture-o" style="color:rgb(29, 155, 240)" aria-hidden="true"></i>
                             </label>
-                            <!-- <i class="fa fa-picture-o" aria-hidden="true"></i> -->
                         </div>
-                        <div>
+                        <div class="flex cursor-pointer items-center justify-center hover:bg-slate-600 transition ease-in-out delay-50 rounded-full w-7 h-7">
                             <button @click="grab_data()">
-                                <i class="fa fa-file-video-o" aria-hidden="true"></i>
+                                <i class="fa fa-file-video-o" style="color:rgb(29, 155, 240)" aria-hidden="true"></i>
                             </button>
                         </div>
-                        <div>
-                            <i class="fa fa-bar-chart" aria-hidden="true"></i>
+                        <div class="flex cursor-pointer items-center justify-center hover:bg-slate-600 transition ease-in-out delay-50 rounded-full w-7 h-7">
+                            <i class="fa fa-bar-chart" style="color:rgb(29, 155, 240)" aria-hidden="true"></i>
                         </div>
-                        <div>
-                            <i class="fa fa-smile-o cursor-pointer" aria-hidden="true" @click="emoticon=(!emoticon)"></i>
+                        <div class="flex cursor-pointer items-center justify-center hover:bg-slate-600 transition ease-in-out delay-50 rounded-full w-7 h-7">
+                            <i class="fa fa-smile-o" style="color:rgb(29, 155, 240)" aria-hidden="true" @click="emoticon=(!emoticon)"></i>
                         </div>
-                        <!-- <div>
+                    <!-- <div>
                             <i class="fa fa-calendar" aria-hidden="true"></i>
                         </div>
                         <div>
@@ -244,31 +256,38 @@ axios
                 </div>
                 <!-- </Modal> -->
                 <!-- Feed -->
-           <div v-for="tweet in tweets.length" class="flex p-3 border-b-[0.1px] border-blue-200">
+           <div @click="viewTweet(tweets[tweet-1].tweetId)" v-for="tweet in tweets.length" :id="tweets[tweet-1].tweetId" class="flex p-3 w-full border-b-[0.1px] border-blue-200 cursor-pointer hover:bg-gray-700">
+            <div>
                 <img class="w-14 h-14 rounded-full object-cover" :src=tweets[tweet-1].userPic  alt="Rounded avatar">
-                <div class="flex flex-col pl-3 w-full">
-                    <div class="flex">
-                        <h1 class="font-bold">
-                            {{ tweets[tweet-1].tweetedBy }}
-                        </h1>
-                        <h1 class="text-slate-400 ml-2">
-                            {{ tweets[tweet-1].user }}
-                        </h1>
-                        <h1 class="text-slate-400 ml-1">
-                            • {{ (new Date(tweets[tweet-1].createdAt)).toString().substring(4, 10) }},
-                            {{ (new Date(tweets[tweet-1].createdAt)).toString().substring(11, 15) }} 
-                        </h1>
-                    </div>
+            </div>
+            <div class="flex flex-col pl-3 w-full">
+                <div class="flex">
+                    <h1 class="font-bold">
+                        {{ tweets[tweet-1].tweetedBy }}
+                    </h1>
+                    <h1 class="text-slate-400 ml-2">
+                        {{ tweets[tweet-1].tweeterEmail }}
+                    </h1>
+                    <h1 class="text-slate-400 ml-1">
+                        • {{ (new Date(tweets[tweet-1].createdAt)).toString().substring(4, 10) }},
+                        {{ (new Date(tweets[tweet-1].createdAt)).toString().substring(11, 15) }} 
+                    </h1>
+                </div>
 
-                    <!-- Tweet -->
-                    <div>
-                        {{ tweets[tweet-1].tweet }}
-                    </div>
+                <!-- Tweet -->
+                <div>
+                    {{ tweets[tweet-1].tweet }}
+                </div>
 
-                    <div class="flex">
-                        <img :src="tweets[tweet-1].mediaFile" class="rounded-2xl mt-4" alt="">
-                        <!-- {{ tweets[tweet-1].mediaFile }} -->
-                    </div>
+                <div class="flex">
+                    <img :src="tweets[tweet-1].mediaFile" class="rounded-2xl mt-4" alt="">
+                    <!-- {{ tweets[tweet-1].mediaFile }} -->
+                </div>
+                <div class="flex mt-4 items-center">
+                    <i class="fa fa-comment" aria-hidden="true"></i>
+                    <h1 class="pl-2">{{ tweets[tweet-1].numOfComments }}</h1>
+                    <i class="fa fa-heart ml-12" aria-hidden="true"></i>
+                </div>
                     <!-- Tweet ends -->
                 </div>
             </div>

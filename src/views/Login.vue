@@ -25,10 +25,10 @@ async function GoogleSignIn() {
           picUrl: result.user.photoURL,
         })
         .then((result) => {
-          localStorage.setItem("name", full_name)
+          localStorage.setItem("name", result.data.name)
           localStorage.setItem("email", result.data.email)
           localStorage.setItem("pic", result.data.pic)
-          localStorage.setItem("token", result.headers['x-redeminds-user-token'])
+          localStorage.setItem("token", result.headers['twitter-user-token'])
           router.push('home')
           //window.location.push('home')
           console.log(result)
@@ -60,7 +60,7 @@ async function GoogleSignIn() {
         <button
           id="gmail"
           @click="GoogleSignIn"
-          class="mt-5 w-80 p-1 ripple ripple-bg-gray-300 shadow phone:h-10 desktop:h-12 hover:bg-blue-200 border border-gray text-black rounded-full">
+          class="mt-5 w-80 p-1 ripple ripple-bg-gray-300 shadow phone:h-10 desktop:h-12 hover:bg-blue-300 border border-gray text-black rounded-full">
           <Google class="h-8 mr-2 phone:w-4 tablet:w-8 desktop:w-8 inline rounded-full" />
             <span class="phone:text-[10px] tablet:text-l desktop:text-l">Continue with Google</span>
         </button>

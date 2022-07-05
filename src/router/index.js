@@ -27,6 +27,11 @@ const router = createRouter({
       path: '/:id/following/',
       name: 'following',
       component: () => import('/src/views/UserFollowing.vue')
+    },
+    {
+      path: '/tweet/:tweetId/',
+      name: 'viewTweet',
+      component: () => import('/src/views/ViewTweet.vue')
     }
   ]
 })

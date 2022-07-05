@@ -56,6 +56,11 @@ const updateProfile = () => {
         console.log(result)
     })
 }
+
+const viewTweet = (tweetId) => {
+    window.location.href = '/tweet/' + tweetId + '/';
+    localStorage.setItem("tweetId", tweetId)
+}
 </script>
 
 <template>
@@ -107,7 +112,7 @@ const updateProfile = () => {
 
             <div class="mt-6 border-t-[0.1px] border-blue-200">
             <!-- Feed -->
-            <div v-for="tweet in tweets.length" class="flex p-3 border-b-[0.1px] border-blue-200">
+            <div @click="viewTweet(tweets[tweet-1].tweetId)" v-for="tweet in tweets.length" class="flex p-3 border-b-[0.1px] border-blue-200 cursor-pointer hover:bg-gray-700">
                 <img class="w-14 h-14 rounded-full object-cover" :src=tweets[tweet-1].userPic  alt="Rounded avatar">
                 <div class="flex flex-col pl-3 w-full">
                     <div class="flex">
@@ -128,6 +133,11 @@ const updateProfile = () => {
                     <div class="flex">
                         <img :src="tweets[tweet-1].mediaFile" class="rounded-2xl mt-4" alt="">
                         <!-- {{ tweets[tweet-1].mediaFile }} -->
+                    </div>
+                    <div class="flex mt-4 items-center">
+                        <i class="fa fa-comment" aria-hidden="true"></i>
+                            <h1 class="pl-2">{{ tweets[tweet-1].numOfComments }}</h1>
+                        <i class="fa fa-heart ml-12" aria-hidden="true"></i>
                     </div>
                     <!-- Tweet ends -->
                 </div>
