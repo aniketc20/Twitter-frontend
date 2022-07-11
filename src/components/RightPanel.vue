@@ -10,16 +10,19 @@ const user_email = localStorage.getItem("email")
 const authStore = useAuthStore()
 const token = localStorage.getItem("token")
 const loggenInUser = localStorage.getItem("email")
+const url = import.meta.env.VITE_API_URL
 
 var users = ref([])
+var showLoading = ref(true)
 
 axios.defaults.headers.common["Authorization"] = "Bearer " + token
 axios
-    .get(`http://localhost:8000/v1/followusers/`+user_email)
+    .get(url + `followusers/`+user_email, showLoading.value=false)
     .then((result) => {
         for (let i = 0; i < result.data.length; i++) {
             users.value.push(result.data[i]);
-        } 
+        }
+        showLoading.value=true
     console.log(users.value)
 })
 
@@ -34,7 +37,7 @@ const followUser = (user) => {
     if(followORunFollow.textContent=="Follow") {
         followORunFollow.textContent = "Unfollow"
         axios
-            .post(` http://localhost:8000/v1/follow`, {
+            .post(url + `follow`, {
                 "follower": loggenInUser,
                 "following": user.path[1]['id']
             })
@@ -69,6 +72,11 @@ const followUser = (user) => {
                 <h1 class="font-extrabold p-2 text-[20px]">
                     Users to follow
                 </h1>
+                <div class="flex justify-center">
+                    <div :hidden="showLoading">
+                    <i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>
+                </div>
+                </div>
                 <div v-for="user in users.length" class="flex w-full mt-4">
                     <div>
                         <button class="rounded-full" @click="viewProfile" :id="users[user-1].email">

@@ -10,7 +10,10 @@ import axios from "axios"
 
 const user_img = localStorage.getItem("pic")
 const user_email = localStorage.getItem("email")
+const user_name = localStorage.getItem("name")
+
 const token = localStorage.getItem("token")
+const url = import.meta.env.VITE_API_URL
 
 const viewProfile = (selectedUser) => {
     console.log(selectedUser.path[1].id)
@@ -23,6 +26,7 @@ var dropdownPopoverShow = ref(false)
 var btnDropdownRef = ref("")
 var popoverDropdownRef = ref("")
 
+console.log(useRoute().path)
 const toggleDropdown = () => {
       if(dropdownPopoverShow.value){
         dropdownPopoverShow.value = false;
@@ -37,7 +41,7 @@ const toggleDropdown = () => {
 const logout = () => {
     axios.defaults.headers.common["Authorization"] = "Bearer " + token
     axios
-      .post(`http://localhost:8000/v1/`+user_email+`/logout`)
+      .post(url+user_email+`/logout`)
       .then((result) => {
         
         console.log(result)
@@ -57,7 +61,7 @@ const logout = () => {
                 <button @click="router.replace('/home/')" class="hover:bg-blue-500 rounded-full">
                     <div class="flex">
                         <!-- <Home class=" m-1"/> -->
-                        <h1 class="font-bold bg-gray-600 rounded-full p-3" v-if="useRoute().path=='/home/' ">
+                        <h1 class="font-bold bg-gray-600 rounded-full p-3" v-if="useRoute().path=='/home/' || useRoute().path=='/home' ">
                         <HomeIconDark class="inline m-1"/>
                         <!-- <i class="fa fa-home m-1" style='color:orange' aria-hidden="true"></i> -->
                             Home
@@ -128,10 +132,7 @@ const logout = () => {
                             <img class="w-14 h-14 p-2 rounded-full object-cover" :src=user_img alt="Rounded avatar">
                             <div class="flex-col pl-2 w-full">
                                 <h1 class="text-sm font-bold">
-                                    Aniket Choudhary
-                                </h1>
-                                <h1 class="text-sm">
-                                    @aniketsab123
+                                    {{user_name}}
                                 </h1>
                             </div>
                         </div>
@@ -151,10 +152,10 @@ const logout = () => {
                     <img class="w-14 h-14 rounded-full object-cover" :src=user_img alt="Rounded avatar">
                     <div class="flex-col pl-2 w-96">
                         <h1 class="text-sm font-bold">
-                            Aniket Choudhary
+                            {{user_name}}
                         </h1>
                         <h1 class="text-sm">
-                            @aniketsab123
+                            {{user_email}}
                         </h1>
                     </div>
                 </div>

@@ -1,5 +1,4 @@
 <script setup>
-import Home from '../assets/home/home.vue';
 import LeftPanelVue from '../components/LeftPanel.vue';
 import RightPanelVue from '../components/RightPanel.vue';
 import axios from "axios"
@@ -12,6 +11,7 @@ const user_img = localStorage.getItem("pic")
 const user_email = localStorage.getItem("email")
 const tweet = ref("")
 const token = localStorage.getItem("token")
+const url = import.meta.env.VITE_API_URL
 
 
 var emoticon = ref(true)
@@ -21,6 +21,7 @@ var gifKeyword = ref("")
 var gif_img = ref(null)
 var hide_cross = ref(true)
 var tweets = ref([])
+var alreadyLiked = ref()
 
 // url Async requesting function
 function httpGetAsync(theUrl, callback)
@@ -99,7 +100,7 @@ const postTweet = () => {
     axios.defaults.headers.common["Authorization"] = "Bearer " + token
     console.log(tweet.value)
     axios
-      .post(`http://localhost:8000/v1/tweet`,{
+      .post(url + `tweet`,{
         tweet: tweet.value,
         mediaFile: gif_img.value,
         tweeterEmail: user_email
@@ -110,7 +111,6 @@ const postTweet = () => {
         console.log(result)
         tweet.value = ''
         tweetPosted();
-        window.location.href = '/home/';
       })
 }
 
@@ -155,27 +155,98 @@ const insertPic = () => {
         reader.readAsDataURL(file);
     }
 }
-setInterval(function(){ 
-axios.defaults.headers.common["Authorization"] = "Bearer " + token
-axios
-    .get(`http://localhost:8000/v1/`+user_email+`/feed/`)
-    .then((result) => {
-        tweets.value = result.data;
-        console.log(tweets.value)
-})
-}, 10000);
+
+const postLike = () => {
+    console.log("hello")
+    var likebtn = document.getElementById("like")
+    console.log(likebtn)
+    likebtn.style.color = 'red';
+    //likebtn.classList.add("color:red");
+}
+
+const viewProfile = (selectedUser) => {
+    window.location.href = selectedUser.path[1].id+'/'
+    localStorage.setItem("clicked-user-email", selectedUser.path[1].id)
+    console.log(selectedUser.path[1].id)
+}
+async function pollTweets() {
+    axios.defaults.headers.common["Authorization"] = "Bearer " + token
+  let response =
+  await axios.get(url+'poll',
+  { params: { user: user_email } });
+
+  if (response.status == 502) {
+    // Status 502 is a connection timeout error,
+    // may happen when the connection was pending for too long,
+    // and the remote server or a proxy closed it
+    // let's reconnect
+    await pollTweets();
+  } else if (response.status != 200) {
+    // An error - let's show it
+    // Reconnect in one second
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await pollTweets();
+  } else {
+    // Get and show the message
+    console.log(response)
+    if(response.data!="no updates") {
+        tweets.value = response.data;
+    }
+    // showMessage(message);
+    // Call pollTweets() again to get the next message
+    await pollTweets();
+  }
+}
+
+pollTweets();
 
 axios.defaults.headers.common["Authorization"] = "Bearer " + token
 axios
-    .get(`http://localhost:8000/v1/`+user_email+`/feed/`)
+    .get(url+user_email+`/feed/`)
     .then((result) => {
         tweets.value = result.data;
+        if(result.data[0].likedBy.includes(user_email)) {
+            alreadyLiked.value = true
+        }
         console.log(tweets.value)
 })
 
-const viewTweet = (tweetId) => {
-    window.location.href = '/tweet/' + tweetId + '/';
-    localStorage.setItem("tweetId", tweetId)
+const clickTweetRow = (tweetId) => {
+    if(tweetId.path[0].id=="like"+tweetId.path[0].accessKey || tweetId.path[0].id=="likeDiv") {
+        var element = document.getElementById('like'+tweetId.path[0].accessKey)
+        var numOfLikes = document.getElementById('numOfLikes'+tweetId.path[0].accessKey)
+        const cssObj = window.getComputedStyle(element, null);
+        // unlike post
+        if(cssObj.getPropertyValue("color")=='rgb(255, 0, 0)') {
+            element.style.color = 'white'
+            numOfLikes.innerText = parseInt(numOfLikes.innerText)-1;
+        }
+        // like post
+        else {
+            element.style.color = 'red'
+            numOfLikes.innerText = parseInt(numOfLikes.innerText)+1;
+        }
+        // call like/unlike API
+        axios.defaults.headers.common["Authorization"] = "Bearer " + token
+        axios
+            .post(url+tweetId.path[0].accessKey+`/`+user_email)
+            .then((result) => {
+                numOfLikes.innerText = result.data.likedBy.length
+                console.log(result.data.likedBy)
+        })
+    }
+    // user clicks on tweeter Pic redirects to User Profile Page
+    else if(tweetId.path[0].id=="viewProfile") {
+        window.location.href = '/'+ tweetId.path[0].accessKey+'/'
+        localStorage.setItem("clicked-user-email", tweetId.path[0].accessKey)
+        console.log("view profile", tweetId.path[0].accessKey)
+    }
+    // user clicks on tweet redirects to Tweet Info page
+    else {
+        window.location.href = '/tweet/' + tweetId.path[0].accessKey + '/';
+        localStorage.setItem("tweetId", tweetId.path[0].accessKey)
+        console.log("view tweet", tweetId.path[0].accessKey)
+    }
 }
 
 </script>
@@ -251,42 +322,49 @@ const viewTweet = (tweetId) => {
             <div class="border-t h-screen">
                 <!-- <Modal :hidden="emoticon" @click="emoticon=true"> -->
                 <div class="flex h-0 rounded-xl">
-                    <emoji-picker @emojiClick="handleEmojiClick" :hidden=emoticon class="m-auto dark shadow-gray-700 shadow-lg">
+                    <emoji-picker id="" @emojiClick="handleEmojiClick" :hidden=emoticon class="m-auto dark shadow-gray-700 shadow-lg">
                     </emoji-picker>
                 </div>
                 <!-- </Modal> -->
                 <!-- Feed -->
-           <div @click="viewTweet(tweets[tweet-1].tweetId)" v-for="tweet in tweets.length" :id="tweets[tweet-1].tweetId" class="flex p-3 w-full border-b-[0.1px] border-blue-200 cursor-pointer hover:bg-gray-700">
-            <div>
-                <img class="w-14 h-14 rounded-full object-cover" :src=tweets[tweet-1].userPic  alt="Rounded avatar">
-            </div>
-            <div class="flex flex-col pl-3 w-full">
-                <div class="flex">
-                    <h1 class="font-bold">
+           <div @click="clickTweetRow" v-for="tweet in tweets.length" :accesskey="tweets[tweet-1].tweetId" class="flex p-3 w-full border-b-[0.1px] border-blue-200 cursor-pointer hover:bg-gray-700">
+                <button class="rounded-full w-14 h-14">
+                    <img class="w-14 h-14 rounded-full object-cover" :accesskey="tweets[tweet-1].email" id="viewProfile" :src=tweets[tweet-1].userPic  alt="Rounded avatar">
+                </button>
+            
+            <div class="flex flex-col pl-3 w-full" :accesskey="tweets[tweet-1].tweetId">
+                <div class="flex" :accesskey="tweets[tweet-1].tweetId">
+                    <h1 class="font-bold" :accesskey="tweets[tweet-1].tweetId">
                         {{ tweets[tweet-1].tweetedBy }}
                     </h1>
-                    <h1 class="text-slate-400 ml-2">
+                    <h1 class="text-slate-400 ml-2" :accesskey="tweets[tweet-1].tweetId">
                         {{ tweets[tweet-1].tweeterEmail }}
                     </h1>
-                    <h1 class="text-slate-400 ml-1">
+                    <h1 class="text-slate-400 ml-1" :accesskey="tweets[tweet-1].tweetId">
                         • {{ (new Date(tweets[tweet-1].createdAt)).toString().substring(4, 10) }},
                         {{ (new Date(tweets[tweet-1].createdAt)).toString().substring(11, 15) }} 
                     </h1>
                 </div>
 
                 <!-- Tweet -->
-                <div>
+                <div :accesskey="tweets[tweet-1].tweetId">
                     {{ tweets[tweet-1].tweet }}
                 </div>
 
-                <div class="flex">
+                <div class="flex" :accesskey="tweets[tweet-1].tweetId">
                     <img :src="tweets[tweet-1].mediaFile" class="rounded-2xl mt-4" alt="">
                     <!-- {{ tweets[tweet-1].mediaFile }} -->
                 </div>
-                <div class="flex mt-4 items-center">
+                <div class="flex mt-4 items-center" :accesskey="tweets[tweet-1].tweetId">
                     <i class="fa fa-comment" aria-hidden="true"></i>
                     <h1 class="pl-2">{{ tweets[tweet-1].numOfComments }}</h1>
-                    <i class="fa fa-heart ml-12" aria-hidden="true"></i>
+                    <div v-if="tweets[tweet-1].likedBy.includes(user_email)" :accesskey="tweets[tweet-1].tweetId" id="likeDiv" class="flex ml-6 cursor-pointer items-center justify-center hover:bg-blue-500 transition ease-in-out delay-50 rounded-full w-7 h-7">
+                        <i class="fa fa-heart" :accesskey="tweets[tweet-1].tweetId" :id="'like' + tweets[tweet-1].tweetId" aria-hidden="true" style="color: red;"></i>
+                    </div>
+                    <div v-else :accesskey="tweets[tweet-1].tweetId" id="likeDiv" class="flex ml-6 cursor-pointer items-center justify-center hover:bg-blue-500 transition ease-in-out delay-50 rounded-full w-7 h-7">
+                        <i class="fa fa-heart rounded-full" :accesskey="tweets[tweet-1].tweetId" :id="'like' + tweets[tweet-1].tweetId" aria-hidden="true" style="color: whitesmoke;"></i>
+                    </div>
+                    <h1 class="pl-2" :id="'numOfLikes'+tweets[tweet-1].tweetId">{{ tweets[tweet-1].likedBy.length }}</h1>
                 </div>
                     <!-- Tweet ends -->
                 </div>
@@ -298,7 +376,7 @@ const viewTweet = (tweetId) => {
     <RightPanelVue/>
 </div>
 <Modal v-model="openGif">
-    <div class="flex-col bg-gray-700 w-[45%] h-[600px] fixed rounded-2xl overflow-scroll">
+    <div class="flex-col z-20 bg-gray-700 w-[45%] h-[600px] fixed rounded-2xl overflow-scroll">
         <div class="flex m-2">
             <div class="w-full">
             <span class="flex absolute items-center p-2">
@@ -325,6 +403,9 @@ const viewTweet = (tweetId) => {
 </Modal>
 </template>
 <style scoped>
+#like:hover {
+  color: brown;
+}
 button:disabled {
   border: 1px solid #999999;
   background-color: transparent;
@@ -339,7 +420,7 @@ button:disabled {
 .overlay {
   position: absolute;
   right: 0;
-  z-index: 5;
+  z-index: 0;
 }
 
 emoji-picker {

@@ -11,10 +11,11 @@ const email = (result[0].slice(1, -1));
 const followers = ref([])
 const token = localStorage.getItem("token")
 const loggenInUser = localStorage.getItem("email")
+const url = import.meta.env.VITE_API_URL
 
 axios.defaults.headers.common["Authorization"] = "Bearer " + token
 axios
-    .get(`http://localhost:8000/v1/`+email+`/followers/`)
+    .get(url+email+`/followers/`)
     .then((result) => {
         followers.value = result.data
         console.log(followers.value)
@@ -26,7 +27,7 @@ const followUser = (user) => {
     if(followORunFollow.textContent=="Follow") {
         followORunFollow.textContent = "Unfollow"
         axios
-            .post(` http://localhost:8000/v1/follow`, {
+            .post(url + `follow`, {
                 "follower": loggenInUser,
                 "following": user.path[1]['id']
             })
@@ -37,7 +38,7 @@ const followUser = (user) => {
     else {
         followORunFollow.textContent = "Follow"
         axios
-            .post(` http://localhost:8000/v1/unfollow`, {
+            .post(url + `unfollow`, {
                 "follower": loggenInUser,
                 "following": user.path[1]['id']
             })

@@ -4,7 +4,6 @@ import './index.css'
 import router from './router'
 import vue3videoPlay from "vue3-video-play";
 import "vue3-video-play/dist/style.css";
-import { getAnalytics } from "firebase/analytics";
 import firebase from "firebase/compat/app";
 import 'vue-universal-modal/dist/index.css'
 import VueUniversalModal from 'vue-universal-modal'
@@ -33,4 +32,3 @@ const firebaseConfig = {
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);

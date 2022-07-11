@@ -11,16 +11,18 @@ const followers = ref(0)
 const following = ref(0)
 const token = localStorage.getItem("token")
 const loggedInUserEmail = ref(localStorage.getItem("email"))
+const url = import.meta.env.VITE_API_URL
 
 var myinput = ref("")
 var profile_pic = ref(user_img)
 var name = ref(user_name)
 var openModal = ref(false)
 var tweets = ref([])
+var showLoading = ref(true)
 
 axios.defaults.headers.common["Authorization"] = "Bearer " + token
 axios
-    .get(`http://localhost:8000/v1/getUserTweets/`+localStorage.getItem("clicked-user-email"))
+    .get(url + `getUserTweets/`+localStorage.getItem("clicked-user-email"), showLoading.value=false)
     .then((result) => {
         tweets.value = result.data.tweets;
         user_img.value = result.data.user_details[1]
@@ -28,6 +30,7 @@ axios
         user_email.value = result.data.user_details[2]
         followers.value = result.data.followers[0]
         following.value = result.data.following[0]
+        showLoading.value=true
         console.log(tweets.value)
 })
 const capturePic = () => {
@@ -46,7 +49,7 @@ const updateProfile = () => {
     console.log(myinput.value.value)
     axios.defaults.headers.common["Authorization"] = "Bearer " + token
     axios
-      .post(`http://localhost:8000/v1/updateProfile`,{
+      .post(url + `updateProfile`,{
         picUrl: profile_pic.value,
         email: user_email.value,
         name: myinput.value.value
@@ -111,6 +114,11 @@ const viewTweet = (tweetId) => {
             </div>
 
             <div class="mt-6 border-t-[0.1px] border-blue-200">
+                <div class="flex justify-center">
+                    <div :hidden="showLoading">
+                    <i class="fa fa-circle-o-notch fa-spin mt-12" style="font-size:50px"></i>
+                    </div>
+                </div>
             <!-- Feed -->
             <div @click="viewTweet(tweets[tweet-1].tweetId)" v-for="tweet in tweets.length" class="flex p-3 border-b-[0.1px] border-blue-200 cursor-pointer hover:bg-gray-700">
                 <img class="w-14 h-14 rounded-full object-cover" :src=tweets[tweet-1].userPic  alt="Rounded avatar">

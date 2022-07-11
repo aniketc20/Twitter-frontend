@@ -13,37 +13,49 @@ const user_img = localStorage.getItem("pic")
 const newComment = ref("")
 const user_email = localStorage.getItem("email")
 const user_name = localStorage.getItem("name")
+const url = import.meta.env.VITE_API_URL
 
 var hide_cross = ref(true)
 var emoticon = ref(true)
+var alreadyLiked = ref("")
+var numOfLikes = ref("")
 
 const handleEmojiClick = (detail) => {
     newComment.value += detail.detail.emoji.unicode;
 }
 
-setInterval(function(){ 
-axios.defaults.headers.common["Authorization"] = "Bearer " + token
-axios
-    .get(`http://localhost:8000/v1/getTweetInfo/`+tweetId)
-    .then((result) => {
-        tweet.value = result.data
-        console.log(result.data)
-})
-}, 3000);
+// setInterval(function(){ 
+// axios.defaults.headers.common["Authorization"] = "Bearer " + token
+// axios
+//     .get(url + `getTweetInfo/`+tweetId)
+//     .then((result) => {
+//         tweet.value = result.data
+//         numOfLikes.value = result.data.likedBy.length;
+//         if(result.data.likedBy.includes(user_email)) {
+//             numOfLikes.value = result.data.likedBy.length;
+//             alreadyLiked.value = true
+//         }
+//         console.log(result.data)
+// })
+// }, 5000);
 
 axios.defaults.headers.common["Authorization"] = "Bearer " + token
 axios
-    .get(`http://localhost:8000/v1/getTweetInfo/`+tweetId)
+    .get(url + `getTweetInfo/`+tweetId)
     .then((result) => {
         tweet.value = result.data
         console.log(result.data)
+        if(result.data.likedBy.includes(user_email)) {
+            numOfLikes.value = result.data.likedBy.length;
+            alreadyLiked.value = true
+        }
 })
 
 const postComment = () => {
     axios.defaults.headers.common["Authorization"] = "Bearer " + token
     console.log(newComment.value)
     axios
-      .post(`http://localhost:8000/v1/`+tweetId+ `/postComment`,{
+      .post(url+tweetId+ `/postComment`,{
         "tweetId": tweetId,
         "comment": newComment.value,
         "commentedBy": user_name,
@@ -56,6 +68,26 @@ const postComment = () => {
         window.location.href = '/tweet/' + tweetId + '/';
         // window.location.href = '/home/';
       })
+}
+
+const postLike = (tweetId) => {
+    var element = document.getElementById('like')
+    const cssObj = window.getComputedStyle(element, null);
+    if(cssObj.getPropertyValue("color")=='rgb(255, 0, 0)') {
+        element.style.color = 'white'
+        // numOfLikes.value = numOfLikes.value - 1
+    }
+    else {
+        element.style.color = 'red'
+        // numOfLikes.value = numOfLikes.value + 1
+    }
+    axios.defaults.headers.common["Authorization"] = "Bearer " + token
+    axios
+        .post(url+tweetId.path[0].accessKey+`/`+user_email)
+        .then((result) => {
+            console.log(result.data.likedBy)
+            numOfLikes.value = result.data.likedBy.length
+    })
 }
 </script>
 <template>
@@ -86,7 +118,13 @@ const postComment = () => {
                     <div class="flex p-6 items-center">
                             <i class="fa fa-comment" aria-hidden="true"></i>
                             <h1 class="pl-2">{{ tweet.numOfComments }}</h1>
-                            <i class="fa fa-heart ml-12" aria-hidden="true"></i>
+                            <div @click="postLike" v-if="alreadyLiked" :accesskey="tweet.tweetId" id="likeDiv" class="flex ml-6 cursor-pointer items-center justify-center hover:bg-blue-500 transition ease-in-out delay-50 rounded-full w-7 h-7">
+                            <i class="fa fa-heart" :accesskey="tweet.tweetId" id="like" aria-hidden="true" style="color: red;"></i>
+                            </div>
+                            <div @click="postLike" v-if="!alreadyLiked" :accesskey="tweet.tweetId" id="likeDiv" class="flex ml-6 cursor-pointer items-center justify-center hover:bg-blue-500 transition ease-in-out delay-50 rounded-full w-7 h-7">
+                                <i class="fa fa-heart rounded-full" :accesskey="tweet.tweetId" id="like" aria-hidden="true" style="color: whitesmoke;"></i>
+                            </div>
+                            <h1 class="pl-2">{{ numOfLikes }}</h1>
                         </div>
                 </div>
 

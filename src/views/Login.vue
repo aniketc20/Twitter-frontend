@@ -7,6 +7,8 @@ import axios from "axios"
 import router from '../router';
 
 const provider = new GoogleAuthProvider()
+const url = import.meta.env.VITE_API_URL
+
 async function GoogleSignIn() {
   const auth = getAuth()
   signInWithPopup(auth, provider)
@@ -19,7 +21,7 @@ async function GoogleSignIn() {
       const email = user.email
       const pic = user.photoURL
       axios
-        .post(`http://localhost:8000/v1/`, {
+        .post(url, {
           name: result.user.displayName,
           email: result.user.email,
           picUrl: result.user.photoURL,
