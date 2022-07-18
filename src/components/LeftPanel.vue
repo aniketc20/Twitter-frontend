@@ -1,5 +1,4 @@
 <script setup>
-import Home from '../assets/home/home.vue';
 import router from '../router';
 import {useRoute} from 'vue-router';
 import HomeIcon from '../assets/leftPanel/HomeIcon.vue';
@@ -25,8 +24,8 @@ const viewProfile = (selectedUser) => {
 var dropdownPopoverShow = ref(false)
 var btnDropdownRef = ref("")
 var popoverDropdownRef = ref("")
-
 console.log(useRoute().path)
+
 const toggleDropdown = () => {
       if(dropdownPopoverShow.value){
         dropdownPopoverShow.value = false;
@@ -141,20 +140,20 @@ const logout = () => {
                         Add an existing Account
                     </a>
                     <div class="h-0 my-2 border border-solid border-t-0 border-slate-800 opacity-25"></div>
-                    <a @click="logout" class="text-sm py-2 px-4 font-normal block w-full hover:bg-slate-800 cursor-pointer">
+                    <a @click="logout(),$emit('showLoading')" class="text-sm py-2 px-4 font-normal block w-full hover:bg-slate-800 cursor-pointer">
                         Logout
                     </a>
                     </div>
                 </div>
             
-            <div class="">
+            <div class="w-[110%]">
                 <div class="flex hover:bg-slate-500 rounded-full p-2 cursor-pointer" type="button" @click="toggleDropdown" ref="btnDropdownRef">
-                    <img class="w-14 h-14 rounded-full object-cover" :src=user_img alt="Rounded avatar">
+                    <img class="w-10 h-10 rounded-full object-cover" :src=user_img alt="Rounded avatar">
                     <div class="flex-col pl-2 w-96">
                         <h1 class="text-sm font-bold">
                             {{user_name}}
                         </h1>
-                        <h1 class="text-sm">
+                        <h1 class="text-[9px] text-slate-400">
                             {{user_email}}
                         </h1>
                     </div>

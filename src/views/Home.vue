@@ -6,13 +6,14 @@ import { ref } from "vue"
 import { createToast } from "mosha-vue-toastify"
 import "mosha-vue-toastify/dist/style.css"
 import 'emoji-picker-element';
+import ShowLoading from '../components/ShowLoading.vue';
+import { async } from '@firebase/util';
 
 const user_img = localStorage.getItem("pic")
 const user_email = localStorage.getItem("email")
 const tweet = ref("")
 const token = localStorage.getItem("token")
 const url = import.meta.env.VITE_API_URL
-
 
 var emoticon = ref(true)
 var openGif = ref(false)
@@ -22,6 +23,7 @@ var gif_img = ref(null)
 var hide_cross = ref(true)
 var tweets = ref([])
 var alreadyLiked = ref()
+var showLoading = ref(false)
 
 // url Async requesting function
 function httpGetAsync(theUrl, callback)
@@ -211,7 +213,7 @@ axios
         console.log(tweets.value)
 })
 
-const clickTweetRow = (tweetId) => {
+const clickTweetRow = async (tweetId) => {
     if(tweetId.path[0].id=="like"+tweetId.path[0].accessKey || tweetId.path[0].id=="likeDiv") {
         var element = document.getElementById('like'+tweetId.path[0].accessKey)
         var numOfLikes = document.getElementById('numOfLikes'+tweetId.path[0].accessKey)
@@ -228,10 +230,10 @@ const clickTweetRow = (tweetId) => {
         }
         // call like/unlike API
         axios.defaults.headers.common["Authorization"] = "Bearer " + token
-        axios
+        await axios
             .post(url+tweetId.path[0].accessKey+`/`+user_email)
             .then((result) => {
-                numOfLikes.innerText = result.data.likedBy.length
+                //numOfLikes.innerText = result.data.likedBy.length
                 console.log(result.data.likedBy)
         })
     }
@@ -249,12 +251,17 @@ const clickTweetRow = (tweetId) => {
     }
 }
 
+const getshowLoadingVal = () => {
+      showLoading.value = true
+}
+
 </script>
 
 <template>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<div class="flex h-full">
-    <LeftPanelVue/>
+<ShowLoading v-if="showLoading" />
+<div v-if="!showLoading" class="flex h-full">
+    <LeftPanelVue @showLoading="getshowLoadingVal"/>
     <div class="w-[55%] bg-gray-900 ">
         <div class="flex-col h-screen text-white overflow-auto">
             <div class="p-3">
@@ -428,4 +435,57 @@ emoji-picker {
   
   --input-border-radius: 2rem;
 }
+
+/*  */
+
+.dot-flashing {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #9880ff;
+  color: #9880ff;
+  animation: dotFlashing 1s infinite linear alternate;
+  animation-delay: .5s;
+}
+
+.dot-flashing::before, .dot-flashing::after {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  top: 0;
+}
+
+.dot-flashing::before {
+  left: -15px;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #9880ff;
+  color: #9880ff;
+  animation: dotFlashing 1s infinite alternate;
+  animation-delay: 0s;
+}
+
+.dot-flashing::after {
+  left: 15px;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #9880ff;
+  color: #80f9ff;
+  animation: dotFlashing 1s infinite alternate;
+  animation-delay: 1s;
+}
+
+@keyframes dotFlashing {
+  0% {
+    background-color: #9880ff;
+  }
+  50%,
+  100% {
+    background-color: #ebe6ff;
+  }
+}
+
 </style>

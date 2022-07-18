@@ -14,11 +14,12 @@ const newComment = ref("")
 const user_email = localStorage.getItem("email")
 const user_name = localStorage.getItem("name")
 const url = import.meta.env.VITE_API_URL
+const tweeterImg = ref("https://picsum.photos/2")
 
 var hide_cross = ref(true)
 var emoticon = ref(true)
 var alreadyLiked = ref("")
-var numOfLikes = ref("")
+var numOfLikes = ref(0)
 
 const handleEmojiClick = (detail) => {
     newComment.value += detail.detail.emoji.unicode;
@@ -45,6 +46,7 @@ axios
     .then((result) => {
         tweet.value = result.data
         console.log(result.data)
+        tweeterImg.value = result.data.userPic
         if(result.data.likedBy.includes(user_email)) {
             numOfLikes.value = result.data.likedBy.length;
             alreadyLiked.value = true
@@ -75,18 +77,18 @@ const postLike = (tweetId) => {
     const cssObj = window.getComputedStyle(element, null);
     if(cssObj.getPropertyValue("color")=='rgb(255, 0, 0)') {
         element.style.color = 'white'
-        // numOfLikes.value = numOfLikes.value - 1
+        numOfLikes.value = numOfLikes.value - 1
     }
     else {
         element.style.color = 'red'
-        // numOfLikes.value = numOfLikes.value + 1
+        numOfLikes.value = numOfLikes.value + 1
     }
     axios.defaults.headers.common["Authorization"] = "Bearer " + token
     axios
         .post(url+tweetId.path[0].accessKey+`/`+user_email)
         .then((result) => {
             console.log(result.data.likedBy)
-            numOfLikes.value = result.data.likedBy.length
+            //numOfLikes.value = result.data.likedBy.length
     })
 }
 </script>
@@ -98,7 +100,7 @@ const postLike = (tweetId) => {
         <div class="w-[55%] bg-gray-900 ">
             <div class="flex-col h-screen text-white overflow-auto">
                 <div class="flex pl-6 pt-6">
-                    <img class="w-14 h-14 rounded-full object-cover" :src=tweet.userPic alt="Rounded avatar">
+                    <img class="w-14 h-14 rounded-full object-cover" :src=tweeterImg alt="Rounded avatar">
                     <div class="flex-col pl-2 text-white">
                         <h1 class="font-bold">
                             {{tweet.tweetedBy}}

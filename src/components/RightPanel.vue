@@ -48,7 +48,7 @@ const followUser = (user) => {
     else {
         followORunFollow.textContent = "Follow"
         axios
-            .post(` http://localhost:8000/v1/unfollow`, {
+            .post(url + `unfollow`, {
                 "follower": loggenInUser,
                 "following": user.path[1]['id']
             })
